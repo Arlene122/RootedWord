@@ -12,3 +12,4 @@ A Bible study app for your phone: read the KJV (offline) and NLT, highlight and 
 - ESV (coming): © 2001 by Crossway. esv.org
 
 Family tree data: STEPBible TIPNR (CC BY 4.0), checked against the KJV.
+Hebrew and Greek words: STEPBible TAHOT and TAGNT (Textus Receptus), with STEPBible lexicons. CC BY 4.0, Tyndale House, Cambridge (stepbible.org).

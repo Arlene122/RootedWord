@@ -103,6 +103,7 @@
       return C;
     },
     get: function (n) { return REG[n]; },
+    register: function (n, C) { REG[n] = C; return C; },
     h: h, render: P.render
   };
 })();

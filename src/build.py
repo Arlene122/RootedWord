@@ -55,6 +55,19 @@ tpl = rep(tpl, 'Today · Day 12 of 90', 'Suggested reading')
 tpl = rep(tpl, '<div style="font: 600 26px \'Source Serif 4\', Georgia, serif">6</div>\n          <div style="font: 500 12px Inter, sans-serif; color: #6B6255">day streak</div>', '<div style="font: 600 26px \'Source Serif 4\', Georgia, serif">{{cHl}}</div>\n          <div style="font: 500 12px Inter, sans-serif; color: #6B6255">highlights</div>')
 tpl = rep(tpl, '<button onClick="{{signOut}}"', '<button onClick="{{installApp}}" style="display: {{installShow}}; height: 44px; border: none; border-radius: 12px; background: #1F5E5B; color: #F7F3EC; font: 600 14px Inter, sans-serif">Add to home screen</button>\n      <button onClick="{{signOut}}"')
 
+def cut_block(t, start):
+    i = t.index(start); depth = 0; j = i
+    for m in re.finditer(r"<(/?)sc-if\b", t[i:]):
+        depth += -1 if m.group(1) else 1
+        if depth == 0:
+            j = i + m.end(); j = t.index(">", j) + 1; break
+    return t[:i], t[i:j], t[j:]
+a, blk, b = cut_block(tpl, '<sc-if value="{{lens}}"')
+tpl = a + '<sc-if value="{{lens}}"><dc-import name="LensPanel" b="{{lensB}}" c="{{lensC}}" v="{{lensV}}" book-name="{{lensBook}}" verse-text="{{lensKjvVerse}}" chapter-text="{{lensChapText}}" on-close="{{closeLens}}" open-ref="{{openRefFn}}" get-verse="{{getVerseFn}}" on-thread="{{lensThread}}"></dc-import></sc-if>' + b
+tpl = rep(tpl, 'grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; background: #F2ECE1; border-radius: 10px; padding: 2px; height: 32px', 'grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; background: #F2ECE1; border-radius: 10px; padding: 2px; height: 32px')
+tpl = rep(tpl, '      <sc-if value="{{sReview}}"', '      <sc-if value="{{sCanvas}}"><dc-import name="StudyCanvas" topics="{{topicsAll}}" focus="{{topicId}}" on-change="{{canvasChange}}" get-verse="{{getVerseFn}}" open-ref="{{openRefFn}}" toast="{{toastFn}}"></dc-import></sc-if>\n      <sc-if value="{{sReview}}"')
+js = rep(js, 'studyViews: [["board", "Board"], ["map", "Map"], ["review", "Review (" + S.due + ")"]]', 'studyViews: [["board", "Board"], ["map", "Map"], ["canvas", "Canvas"], ["review", "Review (" + S.due + ")"]]')
+js = rep(js, 'sReview: S.sview === "review",', 'sReview: S.sview === "review", sCanvas: S.sview === "canvas", topicsAll: S.topics, topicId: S.sview === "canvas" ? S.topic : null, canvasChange: function (t) { self.setState({ topics: t }); }, toastFn: function (m) { self.toastMsg(m); }, openRefFn: function (r) { self.openRef(r); }, getVerseFn: function (ref) { var r = parseRef(ref); if (!r || !r.v || r.b == null) return null; var a = self.chapter(r.b, r.c); var t = a && a[r.v - 1]; return t ? { label: NAMES[r.b] + " " + r.c + ":" + r.v, text: t } : null; }, lensBook: NAMES[S.rb], lensB: S.rb, lensC: S.rc, lensKjvVerse: ((self.chapter(S.rb, S.rc) || [])[lensV - 1] || ""), lensChapText: (self.chapter(S.rb, S.rc) || []).map(function (t, i) { return (i + 1) + " " + t; }).join(" ").slice(0, 14000),')
 js = rep(js, 'titles = { home: "Selah"', 'titles = { home: "RootedWord"')
 js = rep(js, 'hl: { "0:22:2": "blue", "0:22:8": "yellow", "0:22:14": "green" }, notes: { "0:22:8": "Lamb provided → John 1:29. God sees AND provides." }', 'hl: {}, notes: {}')
 js = rep(js, 'marks: { moriah: "#D9822B", david: "#3A6E9C" }, tlNotes: { moriah: "Same mountain as the Temple! (2 Chr 3:1)" }', 'marks: {}, tlNotes: {}')
@@ -80,6 +93,7 @@ shell = shell.replace("/*PREACT*/", rd(VEND + "/preact/dist/preact.umd.js"))
 shell = shell.replace("/*SUPABASE*/", rd(VEND + "/@supabase/supabase-js/dist/umd/supabase.js").replace("</script", "<\\/script"))
 shell = shell.replace("/*DC*/", rd(os.path.join(B, "dc.js")))
 shell = shell.replace("/*APP*/", rd(os.path.join(B, "app.js")))
+components_js = rd(os.path.join(B, "canvas.js")) + "\n" + rd(os.path.join(B, "lens.js")) + "\n" + components_js
 shell = shell.replace("/*COMPONENTS*/", components_js.replace("</script", "<\\/script"))
 os.makedirs(OUT, exist_ok=True)
 open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(shell)
@@ -88,5 +102,6 @@ for f in ["kjv.json", "connections.json", "family.json"]:
     shutil.copy(os.path.join(ASSETS, f), os.path.join(OUT, "data", f))
 for f in ["sw.js", "manifest.webmanifest", "README.md", ".nojekyll"]:
     shutil.copy(os.path.join(B, f), os.path.join(OUT, f))
+shutil.copytree(os.path.join(B, "orig"), os.path.join(OUT, "data", "orig"), dirs_exist_ok=True)
 shutil.copytree(os.path.join(B, "icons"), os.path.join(OUT, "icons"), dirs_exist_ok=True)
 print("built", OUT, os.path.getsize(os.path.join(OUT, "index.html")))

@@ -104,6 +104,63 @@
     if (!navigator.onLine) { main.toastMsg("NLT needs internet. Showing KJV."); main.setState({ trans: "KJV" }); }
   };
 
+
+  /* ---------- Lens (AI) ---------- */
+  RW.lens = function (body) {
+    return sb.functions.invoke("lens", { body: body }).then(function (res) {
+      if (res.error) {
+        var ctx = res.error.context;
+        if (ctx && ctx.json) return ctx.json().then(function (j) { throw new Error((j && j.error) || "Lens is busy. Try again shortly."); }, function () { throw new Error("Lens is busy. Try again shortly."); });
+        throw new Error("Lens is busy. Try again shortly.");
+      }
+      if (!res.data || res.data.error) throw new Error((res.data && res.data.error) || "Lens is busy.");
+      return res.data;
+    });
+  };
+
+  /* ---------- study images ---------- */
+  function shrink(file, max, q) {
+    return new Promise(function (ok, bad) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        c.toBlob(function (b) { b ? ok({ blob: b, data: c.toDataURL("image/jpeg", 0.6) }) : bad(new Error("image")); }, "image/jpeg", q);
+      };
+      img.onerror = function () { bad(new Error("image")); };
+      img.src = url;
+    });
+  }
+  var imgMem = {};
+  RW.uploadImage = function (file) {
+    return shrink(file, 1400, 0.82).then(function (r) {
+      if (!session || !navigator.onLine) return shrink(file, 700, 0.7).then(function (s) { return s.data; });
+      var path = session.user.id + "/" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) + ".jpg";
+      imgMem["sb:" + path] = URL.createObjectURL(r.blob);
+      return sb.storage.from("study-images").upload(path, r.blob, { contentType: "image/jpeg", upsert: false }).then(function (u) {
+        if (u.error) { delete imgMem["sb:" + path]; return shrink(file, 700, 0.7).then(function (s) { return s.data; }); }
+        return "sb:" + path;
+      });
+    });
+  };
+  var signing = {};
+  RW.imgUrl = function (ref, comp) {
+    if (!ref) return null;
+    if (/^data:/.test(ref)) return ref;
+    if (imgMem[ref]) return imgMem[ref];
+    var path = ref.slice(3), ck = "rwimg:" + path;
+    try { var c = JSON.parse(localStorage.getItem(ck) || "null"); if (c && c.exp > Date.now()) { imgMem[ref] = c.url; return c.url; } } catch (e) {}
+    if (!signing[ref] && session && navigator.onLine) {
+      signing[ref] = true;
+      sb.storage.from("study-images").createSignedUrl(path, 60 * 60 * 24 * 7).then(function (r) {
+        signing[ref] = false;
+        if (r.data && r.data.signedUrl) { imgMem[ref] = r.data.signedUrl; try { localStorage.setItem(ck, JSON.stringify({ url: r.data.signedUrl, exp: Date.now() + 6 * 864e5 })); } catch (e) {} if (comp) comp.forceUpdate(); }
+      });
+    }
+    return null;
+  };
+
   /* ---------- local + cloud state ---------- */
   function lsKey() { return "rw:" + (session ? session.user.id : "anon"); }
   function loadLocal() { try { return JSON.parse(localStorage.getItem(lsKey()) || "null"); } catch (e) { return null; } }
