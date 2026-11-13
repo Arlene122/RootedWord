@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>RootedWord</title>
+<meta name="description" content="Read, see and study the Bible.">
+<meta name="theme-color" content="#FBF8F2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RootedWord">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #F7F3EC; overflow: hidden; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+  body { font-family: Inter, system-ui, sans-serif; color: #2A2520; padding-top: env(safe-area-inset-top); box-sizing: border-box; }
+  #app { position: absolute; top: env(safe-area-inset-top); transform-origin: 0 0; display: none; }
+  button { cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  #auth { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; overflow-y: auto; }
+  .acard { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 18px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand img { width: 52px; height: 52px; border-radius: 14px; }
+  .brand h1 { margin: 0; font: 600 30px 'Source Serif 4', Georgia, serif; }
+  .brand p { margin: 2px 0 0; font: 500 13px Inter, sans-serif; color: #6B6255; }
+  #auth form { display: none; flex-direction: column; gap: 10px; }
+  #auth h2 { margin: 0 0 4px; font: 600 20px 'Source Serif 4', Georgia, serif; }
+  #auth label { font: 600 12px Inter, sans-serif; color: #6B6255; display: flex; flex-direction: column; gap: 5px; }
+  #auth input { height: 48px; border: 1px solid #E0D6C5; border-radius: 12px; padding: 0 14px; background: #FFFDF8; font: 500 16px Inter, sans-serif; color: #2A2520; outline: none; }
+  #auth input:focus { border-color: #1F5E5B; }
+  #auth button[type=submit] { height: 50px; border: none; border-radius: 14px; background: #1F5E5B; color: #F7F3EC; font: 600 16px Inter, sans-serif; margin-top: 4px; }
+  .alinks { display: flex; justify-content: space-between; gap: 8px; }
+  .alinks a { font: 600 13px Inter, sans-serif; color: #1F5E5B; text-decoration: none; padding: 8px 0; }
+  .amsg { font: 500 13px/1.45 Inter, sans-serif; color: #2B7A63; min-height: 18px; }
+  .amsg.bad { color: #8A2943; }
+  .afoot { font: 500 11px/1.5 Inter, sans-serif; color: #8A7F70; text-align: center; }
+</style>
+</head>
+<body>
+<div id="auth">
+  <div class="acard">
+    <div class="brand"><img src="icons/icon-192.png" alt=""><div><h1>RootedWord</h1><p>Read, see and study the Bible</p></div></div>
+    <div id="amsg" class="amsg"></div>
+    <form id="f-signin" autocomplete="on">
+      <h2>Sign in</h2>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Sign in</button>
+      <div class="alinks"><a href="#" data-go="forgot">Forgot password?</a><a href="#" data-go="signup">Create account</a></div>
+    </form>
+    <form id="f-signup" autocomplete="on">
+      <h2>Create account</h2>
+      <label>Username<input name="username" autocomplete="username" autocapitalize="none" required placeholder="e.g. arlene"></label>
+      <label>Your name<input name="dname" autocomplete="name" placeholder="Shown on your profile"></label>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <label>Password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
+      <button type="submit">Create account</button>
+      <div class="alinks"><a href="#" data-go="signin">I have an account</a></div>
+    </form>
+    <form id="f-forgot">
+      <h2>Reset password</h2>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <button type="submit">Send reset link</button>
+      <div class="alinks"><a href="#" data-go="signin">Back to sign in</a></div>
+    </form>
+    <form id="f-reset">
+      <h2>Choose a new password</h2>
+      <label>New password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
+      <label>Type it again<input name="password2" type="password" autocomplete="new-password" minlength="6" required></label>
+      <button type="submit">Save password</button>
+    </form>
+    <div class="afoot">Scripture text: King James Version (public domain). NLT © Tyndale House Foundation.</div>
+  </div>
+</div>
+<div id="app"></div>
+<script>/*PREACT*/</script>
+<script>/*SUPABASE*/</script>
+<script>/*DC*/</script>
+<script>/*APP*/</script>
+<script>/*COMPONENTS*/</script>
+</body>
+</html>
