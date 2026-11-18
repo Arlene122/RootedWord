@@ -1,11 +1,11 @@
-/* Deeper app glue: auth, sync, scaling, translations. */
+/* Cornerstone app glue: auth, sync, scaling, translations. */
 (function () {
   var SB_URL = "https://bwknqvytaevtypdtpoor.supabase.co";
   var SB_KEY = "sb_publishable_zwpVpbq6_nO-JSIiWECy2w_GKk1Mi72";
   var sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
   var OSIS = "Gen,Exod,Lev,Num,Deut,Josh,Judg,Ruth,1Sam,2Sam,1Kgs,2Kgs,1Chr,2Chr,Ezra,Neh,Esth,Job,Ps,Prov,Eccl,Song,Isa,Jer,Lam,Ezek,Dan,Hos,Joel,Amos,Obad,Jonah,Mic,Nah,Hab,Zeph,Hag,Zech,Mal,Matt,Mark,Luke,John,Acts,Rom,1Cor,2Cor,Gal,Eph,Phil,Col,1Thess,2Thess,1Tim,2Tim,Titus,Phlm,Heb,Jas,1Pet,2Pet,1John,2John,3John,Jude,Rev".split(",");
-  var KEEP = ["hl", "notes", "bm", "marks", "tlNotes", "topics", "trans", "theme"];
-  var KV = ["bm", "marks", "tlNotes", "topics", "prefs"];
+  var KEEP = ["hl", "notes", "bm", "marks", "tlNotes", "topics", "trans", "theme", "grow"];
+  var KV = ["bm", "marks", "tlNotes", "topics", "prefs", "grow"];
 
   var RW = window.RW = { H: 844, S: 1 };
   var session = null, profile = null, root = null;
@@ -219,7 +219,7 @@
     Object.keys(sy.notes).forEach(function (k) { if (!(d.notes || {})[k]) nDel.push(k); });
     if (nUp.length) ops.push(sb.from("bible_notes").upsert(nUp));
     if (nDel.length) ops.push(sb.from("bible_notes").delete().eq("user_id", uid).in("ref", nDel));
-    var kvVals = { bm: d.bm, marks: d.marks, tlNotes: d.tlNotes, topics: d.topics, prefs: { trans: d.trans, theme: d.theme } };
+    var kvVals = { bm: d.bm, marks: d.marks, tlNotes: d.tlNotes, topics: d.topics, grow: d.grow, prefs: { trans: d.trans, theme: d.theme } };
     var kvUp = [];
     KV.forEach(function (k) { nextSynced.kv[k] = kvVals[k]; if (!eq(sy.kv[k], kvVals[k])) kvUp.push({ user_id: uid, key: k, value: kvVals[k] === undefined ? null : kvVals[k], updated_at: new Date().toISOString() }); });
     kvUp = kvUp.filter(function (r) { return r.value !== null; });
@@ -258,7 +258,7 @@
       if (local.dirty && !first) return flush();
       var prefs = kv.prefs || {};
       var d = Object.assign({}, local.data || {}, { hl: hl, notes: notes });
-      ["bm", "marks", "tlNotes", "topics"].forEach(function (k) { if (kv[k] !== undefined) d[k] = kv[k]; });
+      ["bm", "marks", "tlNotes", "topics", "grow"].forEach(function (k) { if (kv[k] !== undefined) d[k] = kv[k]; });
       if (prefs.trans) d.trans = prefs.trans; if (prefs.theme) d.theme = prefs.theme;
       if (local.dirty && first) { // local edits made offline before this launch: keep them, push
         return flush();

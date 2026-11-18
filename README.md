@@ -1,6 +1,6 @@
-# Deeper
+# Cornerstone
 
-Deeper is a Bible study app for your phone: read the KJV (offline) and NLT, highlight and take notes, explore the timeline, family tree, books, writers, connections and maps, and build study boards. Installs to your home screen.
+Cornerstone is a Bible study app for your phone: read the KJV (offline) and NLT, highlight and take notes, explore the timeline, family tree, books, writers, connections and maps, and build study boards. Installs to your home screen.
 
 - Live: https://arlene122.github.io/RootedWord/
 - Sign-in and sync: Supabase (email, username, password).
