@@ -1,4 +1,4 @@
-/* RootedWord app glue: auth, sync, scaling, translations. */
+/* Deeper app glue: auth, sync, scaling, translations. */
 (function () {
   var SB_URL = "https://bwknqvytaevtypdtpoor.supabase.co";
   var SB_KEY = "sb_publishable_zwpVpbq6_nO-JSIiWECy2w_GKk1Mi72";
@@ -56,15 +56,35 @@
   };
   RW.notice = function (t) { return NOTICE[t] || NOTICE.KJV; };
   function parseNLT(html) {
-    var d = new DOMParser().parseFromString(html, "text/html"), out = [];
-    d.querySelectorAll("verse_export").forEach(function (ve) {
-      var vnEl = ve.querySelector(".vn"), n = parseInt(ve.getAttribute("vn") || (vnEl && vnEl.textContent) || "0", 10);
-      ve.querySelectorAll(".tn, .a-tn, .vn, h2, h3, .tn-ref").forEach(function (x) { x.remove(); });
-      var t = ve.textContent.replace(/\s+/g, " ").trim();
-      if (n > 0) out[n - 1] = (out[n - 1] ? out[n - 1] + " " : "") + t;
+    // The NLT API's HTML leaves <p> tags open across verses, so parsing it as one document
+    // nests and drops verses. Split on each verse first, then parse each verse alone.
+    var parts = html.split(/<verse_export\b/i).slice(1), out = [], paras = {}, heads = {}, omit = {}, notes = [];
+    parts.forEach(function (p) {
+      var m = p.match(/\bvn="(\d+)/), n = m ? parseInt(m[1], 10) : 0;
+      if (!n) return;
+      var end = p.indexOf("</verse_export>"), inner = p.slice(p.indexOf(">") + 1, end < 0 ? p.length : end);
+      var vi = inner.search(/class="vn"/), pi = inner.search(/<p[\s>]/i);
+      if (pi >= 0 && (vi < 0 || pi < vi)) paras[n] = true;
+      var pre = vi < 0 ? inner : inner.slice(0, vi), post = vi < 0 ? "" : inner.slice(vi);
+      post = post.replace(/<p\b[^>]*>/gi, "<span>\u2029</span>");
+      var d = new DOMParser().parseFromString("<!doctype html><html><body><div>" + pre + post + "</div></body></html>", "text/html").body;
+      var h = d.querySelector("h3"); if (h) heads[n] = h.textContent.replace(/\s+/g, " ").trim();
+      d.querySelectorAll(".tn").forEach(function (x) { var r = x.querySelector(".tn-ref"); if (r) r.remove(); notes.push(x.textContent.replace(/\s+/g, " ").trim()); });
+      d.querySelectorAll(".tn, .a-tn, .vn, h2, h3").forEach(function (x) { x.remove(); });
+      var txt = d.textContent.replace(/[ \t\r\n\f\v]+/g, " ").replace(/\s*\u2029\s*/g, "\n").replace(/^\n+|\n+$/g, "").replace(/\n{2,}/g, "\n").trim();
+      out[n - 1] = out[n - 1] ? out[n - 1] + " " + txt : txt;
     });
-    for (var i = 0; i < out.length; i++) if (out[i] == null) out[i] = "";
-    return out.length ? out : null;
+    for (var i = 0; i < out.length; i++) {
+      if (out[i] == null) out[i] = "";
+      if (!out[i]) {
+        var vn = i + 1, re = new RegExp("\\bverses?\\b[^.]*?\\b" + vn + "\\b", "i");
+        for (var k = 0; k < notes.length; k++) if (re.test(notes[k])) { omit[vn] = notes[k]; break; }
+        if (!omit[vn]) omit[vn] = "Not included in the NLT text for this verse.";
+      }
+    }
+    if (!out.length) return null;
+    out.paras = paras; out.heads = heads; out.omit = omit;
+    return out;
   }
   function parseESV(html) {
     var d = new DOMParser().parseFromString(html, "text/html"), out = [], cur = 0;
