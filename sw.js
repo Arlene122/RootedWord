@@ -1,5 +1,5 @@
-/* RootedWord service worker */
-const V = "rw-v2";
+/* Deeper service worker */
+const V = "rw-v3";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 const DATA = ["data/kjv.json", "data/connections.json", "data/family.json"];
 self.addEventListener("install", e => {
